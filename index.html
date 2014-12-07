@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>OSM-SQL API</title>
+		<link rel="shortcut icon" href="https://raw.githubusercontent.	com/auremoser/osm-sql/master/assets/favicon.ico" type="image/x-icon">
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+		<style>
+		</style>
+	</head>
+	<body>
+		<div class="intro">
+			<h2>OpenStreetMap SQL API</h2>
+			<p>The OpenStreetMap SQL API (OSM SQL API) is a read-only API to the OpenStreetMap database. It is an alternative method for accessing the OpenStreetMaps database. The API is backed by PostgreSQL with PostGIS so you have access to a very powerful querying geospatial language. This is an experimental API so no warranty of quality of service is provided.</p>
+		</div>
+		<div class="examples"></div>
+		<div class="gui">
+			<p>Try it out by pressing the Run button below! You can find more examples in the docs above too.</p>
+			<button onclick=console.log("RUNNING")>Run!</button>
+			<br>
+			<br>
+			<textarea rows="5" cols="60">ENTER YOUR SQL QUERY HERE.</textarea>
+			<textarea rows="5" cols="60">SEE YOUR RESULT AS JSON HERE!</textarea>
+		</div>
+		<!-- call app script for request -->
+		<script src="js/app.js"></script>
+	</body>
+
+
+<!-- TODOS -->
+<!-- - Have an html page to hold the GUI, and example queries.  -->
+<!-- - Make one script that you can run separately that connects to the API and console logs the results. -->
+
+<!-- ## -->
+
+<!-- The gui should have a different sections:
+- introduction section with links and explanations. Maybe summary of google doc they sent. Dont spent much time with the content, simply copy paste. Refine later.
+- Section with examples and sample code. Same thing, do not waste time. Just copy paste what you can find in the document.
+- Section with GUI: The initial gui can be really simple. Two text areas next to each other, and one button. In one text area you would introduce the SQL query. The button would collect that string and trigger the request. The result would be shown in the other text field with something like innerHtml = JSON.stringify(result); -->
+
+<!-- next: script that would connect to the API, make a hardcoded request and console.log the result. You can use the request they provide as an example in their doc. -->
+</html>
