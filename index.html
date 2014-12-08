@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+		<!-- call app script for request -->
+		<script src="js/app.js"></script>
+		<script>
+			function queryTest() {
+			    document.getElementById("demo").innerHTML = JSON.stringify(result);
+			}
+			</script>
+		</script>
+
+		<title>OSM-SQL API</title>
+		<link rel="shortcut icon" href="https://raw.githubusercontent.	com/auremoser/osm-sql/master/assets/favicon.ico" type="image/x-icon">
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+		<style>
+			html, body {
+			  height: 100%;
+			  margin: 5px;
+			  padding: 5px;
+			}
+			.header {
+			  color: #252525;
+			  font-family: 'Helvetica-Neue', sans-serif;
+			  font-size: 24px;
+			  opacity: 0.4;
+			  padding-top: 2px;
+			  text-align: left;
+			  text-transform: uppercase;
+			}
+			blockquote {
+				margin-left: 20px;
+			}
+			h3, h4 {
+				color: #252525;
+				font-family: 'Helvetica-Neue', sans-serif;
+				opacity: 0.8;
+			}
+			p, th, blockquote, ul, li, label {
+				color: #252525;
+				font-family: 'Helvetica-Neue', sans-serif;
+				font-size: 14px;
+			}
+			button {
+				font-family: 'Helvetica-Neue', sans-serif;
+				font-size: 12px;
+				margin: 5px;
+			}
+			table, td{
+				border: 3px #252525;
+				font-family: 'Helvetica-Neue', sans-serif;
+				font-size: 14px;
+				padding: 2px;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- INTRO SECTION: based on OSM-SQL API doc -->
+		<div>
+			<div class="header">Open Street Map SQL API</div>
+			<p>The OpenStreetMap SQL API (OSM SQL API) is a read-only API to the OpenStreetMap database. It is an alternative method for accessing the OpenStreetMaps database. The API is backed by PostgreSQL with PostGIS so you have access to a very powerful querying geospatial language. This is an experimental API so no warranty of quality of service is provided.</p>
+			<h4>Example call (GET or POST): Get all the airports in USA as a GeoJSON.</h4>
+			<p>
+				<code>http://osm.cartodb.com/api/v2/sql?<strong>format=geojson</strong>&amp;q=</code>
+				<br>
+				<code>SELECT ST_Centroid(the_geom) as the_geom,</code>
+				<br>
+				<code>tags->’name’ as name</code>
+				<br>
+				<code>FROM planet</code>
+				<br>
+				<code>WHERE tags@>'aeroway=>aerodrome'</code>
+				<br>
+				<code>AND the_geom &amp;&amp; ST_MakeEnvelope(-125.0, 24.9, -66.9, 49.5,4326)</code>
+			</p>
+			<br>
+			<table>
+			  <tr>
+			  	<th>Call Syntax</th>
+			    <th>Description</th>
+			  </tr>
+			  <tr>
+			    <td><code>ST_Centroid(the_geom) as the_geom</code></td>
+			    <td>We select the center of the airport as most airports are defined with a polygon</td>
+			  </tr>
+			  <tr>
+			    <td><code>FROM planet</code></td>
+			    <td>The whole OpenStreetMap in a single table called planet</td>
+			  </tr>
+			  <tr>
+			    <td><code>WHERE tags@>'aeroway=>aerodrome'</code></td>
+			    <td>Only get features that have a tag for aeroway = aerodrome, using the GIN index on the “tags” column.</td>
+			  </tr>
+			  <tr>
+			  	<td><code>AND the_geom &amp;&amp; ST_MakeEnvelope(-125.0, 24.9, -66.9, 49.5,4326)</code></td>
+			  	<td>Only matching features inside a bounding box in USA. Format is: xmin,ymin,xmac,ymax,4326.</td>
+			  </tr>
+			</table>
+
+			<!-- DATABASE MODEL -->
+			<h3>Database Model</h3>
+			<p>The API just expose one single table called <strong>planet</strong> with 3 columns the_geom,tags and cartodb_id. Every object in OpenStreetMap becomes one record with their geometries, in SRID 4326, and all the associated tags in an hstore field.</p>
+			<h4>TABLE planet</h4>
+			<table>
+			  <tr>
+			    <td>id</td>
+			    <td>INTEGER. Serial number created by CartoDB</td>
+			  </tr>
+			  <tr>
+			    <td>osm_id</td>
+			    <td>NUMBER. OSM ID of the element.</td>
+			  </tr>
+			  <tr>
+			  	<td>tags</td>
+			  	<td>HSTORE. Tags associated with the element. For a list of suggested tags go to http://wiki.openstreetmap.org/wiki/Map_Features</td>
+			  </tr>
+			  <tr>
+			  	<td>the_geom</td>
+			  	<td>MIXED GEOMETRY. Geometry of the element. Can be points, lines or polygons. All in SRID=4326</td>
+			  </tr>
+			</table>
+			<p>All queries are done against this table using PostgreSQL SQL(link) and PostGIS.</p>
+			<p>The database has the following indices created:</p>
+			<ul>
+				<li>GIN index on the “tags” column, so you can use efficiently the @>, ?, ?&amp; and ?| operators to filter using the hstore.</li>
+				<li>Geometry index on the_geom</li>
+				<li>Index on osm_id</li>
+			</ul>
+			<p>As all queries should be able to run before the statement_timeout period, you should use those indices as much as possible to make your queries run as efficiently as possible.</p>
+			<p>For example, instead of:</p>
+			<code>WHERE tags->’man_made’ = ‘surveillance’</code>
+			<p>which will cause a scan over the table and will probably not finish in time, you should use</p>
+			<code>WHERE tags@>’man_made=>surveillance’</code>
+
+			<!-- CREATING A QUERY -->
+			<h3>Creating a SQL query</h3>
+			<p>For example, selecting all buildings downtown Manhattan:</p>
+			<code>SELECT * FROM planet<strong> --get all attributes</strong></code><br>
+			<code>WHERE tags @> 'building=>yes'<strong> --specify that only those elements that have a tag of building set as yes</strong></code><br>
+			<code>AND ST_GeometryType(the_geom)='ST_Polygon'<strong> --Only return Polygons</strong></code><br>
+			<code>AND the_geom %26%26 ST_MakeEnvelope(-74.0218,40.7002,-73.9804,40.7231,4326)<strong> --Only those matching this bounding box</strong></code><br>
+			<code>limit 1000<strong> --And I dont want more than 1,000</strong></code><br>
+			<p>The return of this will be:</p>
+			<code>{rows: [<br>
+			  {<br>
+			    id: 574419,<br>
+			    osm_id: -100000000002102400,<br>
+			    tags: ""name"=>"17 State Street", "building"=>"yes", "addr:city"=>			"New York", "wikipedia"=>"en:17 State Street", "addr:state"=>"NY", 			"start_date"=>"1988", "nycdoitt:bin"=>"1000020"",<br>
+			    the_geom: "removed to save space"<br>
+			  },<br>
+			….<br>
+			time: 0.235,<br>
+			fields: {<br>
+			the_geom: {<br>
+			type: "geometry"<br>
+			},<br>
+			tags: {<br>
+			type: "JSON"<br>
+			}<br>
+			},<br>
+			total_rows: 100<br>
+			}<br>
+		</code>
+
+		<!-- RESPONSE FORMATS -->
+		<h3>Response formats</h3>
+		<p>The SQL API provides multiple formats for download. You can specify the parameter “format” with the following values:</p>
+		<table>
+			<tr>
+				<td>geojson</td>
+				<td>GeoJSON is one of the most popular geospatial formats for the web.</td>
+			</tr>
+			<tr>
+				<td>csv</td>
+				<td>Comma Separated Value</td>
+			</tr>
+			<tr>
+				<td>shp</td>
+				<td>ESRI Shapefile. The output will be a ZIP file containing all files. Shapefiles can only contain one type of geometry, so when constructing your query you will want to specify a WHERE clause like ST_GeomType(the_geom)=’ST_Point for example.</td>
+			</tr>
+			<tr>
+				<td>json</td>
+				<td>json format is a custom serialization, useful for developing apps that do not necessarily have geometries or for a more flat structure</td>
+			</tr>
+			<tr>
+				<td>svg</td>
+				<td>Following <a href url="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">the SVG standard </a></td>
+			</tr>
+			<tr>
+				<td>KML</td>
+				<td>Google Earth format.</td>
+			</tr>
+		</table>
+		<p>There is support for JSONP if needed adding a callback parameter. Check out <a href url="http://docs.cartodb.com/cartodb-platform/sql-api.html#response-formats">the full SQL API for further documentation</a> </p>
+
+		<!-- ERRORS -->
+		<h3>Errors</h3>
+			<p>In case the SQL provided does not work, an error will be thrown.</p>
+			<p>One special case is if the query takes too long to be processed, it will fail because of timeout. We provide a finite amount of execution time for 	each query, if your query fails you should try to optimize it to use the previously mentioned indices, or contact us to see potential new indexes or 	improvements on the service.</p>
+		<h3>Useful tips and SQL</h3>
+			<p>You can make use of all PostGIS functions, a few ideas here:</p>
+			<p><i>Get all speed cameras on a road:</i></p>
+			<code>SELECT * FROM planet WHERE tags->'highway'='speed_camera' AND the_geom &amp;&amp;</code>
+			<p><i>Get all surveillance cameras around the center of London</i></p>
+			<code>SELECT * FROM planet WHERE tags->'man_made'='surveillance' ORDER BY the_geom &lt;-> CDB_LatLng(51.507702,-0.127970)  limit 100</code>
+			<p><i>Get the tag attributes as part of the json</i></p>
+			<p>As you can see when you retrieve the tags, they come as a string all escaped. If you want them as part of the JSON response, or attributes on the 	GeoJSON, use the function</p>
+			<p><code>hstore_to_json</code></p>
+
+			<code>SELECT the_geom,hstore_to_json(tags) as tags FROM planet WHERE tags@>'man_made=>surveillance' ORDER BY the_geom &lt;-> CDB_LatLng(51.507702,-0.	127970)  limit 100</code>
+			<p><i>Using the API as a tiler service</i></p>
+			<p>If you are developing an interactive map, you might want to access the data as tiles (x/y/z)</p>
+			<code>SELECT the_geom,hstore_to_json(tags) as tags FROM planet WHERE tags@>'man_made=>surveillance' AND the_geom &amp;&amp; CDB_XYZ_Extent(	8186,5445,14)</code>
+		</div>
+		<!-- END INTRO -->
+		<hr>
+		<!-- QUERY DEMO SECTION -->
+		<div>
+			<div class="header">DEMO</div>
+			<div>
+					<p>Type your SQL query. The current query is an example.</p>
+					<label for="query">Query</label><br>
+				  <textarea id="query" cols="60" rows="10">SELECT ST_Centroid(the_geom) as the_geom,
+				tags->’name’ as name
+				FROM planet
+				WHERE tags@>'aeroway=>aerodrome'
+				AND the_geom &amp;&amp; ST_MakeEnvelope(-125.0, 24.9, -66.9, 49.5,4326)</textarea>
+			</div>
+			<button id="submit">Submit</button><br>
+			<div>
+				<label for="result">Result</label><br>
+			    <textarea id="result" cols="60" rows="20"></textarea>
+			</div>
+		</div>
+		<!-- END QUERY DEMO -->
+		<hr>
+		<!-- REFERENCES -->
+		<div>
+			<div class="header">References</div>
+			<p>The service is built on PostgreSQL 9.3 if you want to check <a href url="http://www.postgresql.org/docs/9.3/static/sql-select.html">the reference</a>. Also check out <a href url="http://postgis.net/docs/reference.html">PostGIS reference for spatial functions</a>.</p>
+			<p>Finally the SQL API is explained in detail at <a href url="http://docs.cartodb.com/cartodb-platform/sql-api.html">the official documentation of CartoDB</a>.</p>
+			<h3>Licensing</h3>
+			<p>Checkout the <a href url="http://www.openstreetmap.org/copyright">OpenStreetMap license</a> before using the service</p>
+			<p>As a reference the license says:</p>
+			<blockquote cite="http://www.openstreetmap.org/copyright">“You are free to copy, distribute, transmit and adapt our data, as long as you credit OpenStreetMap and its contributors. If you alter or build upon our data, you may distribute the result only under the same licence. The full legal code explains your rights and responsibilities.”</blockquote>
+			<p>Which means that if you use this service and mix it with your own data, you might be forced to follow the same oDBL license.</p>
+			<h3>Updates</h3>
+			<p>The database behind this API is updated every 30 minutes. That means that if an element is added, modified or deleted on OpenStreetMaps the change will take a maximum of 30 minutes to appear on this API. We might change this time in the future.</p>
+			<h3>Caching</h3>
+			<p>We implement two levels of caching. An internal caching that is always active, and normally we use a CDN to ensure speed and scalability.</p>
+			<p>We do not have support for invalidations at the CDN level currently for this service. So if you use the following endpoint, remember we can not guarantee an updated result.</p>
+			<code>http{s}://cartocdn_{a,b,c,d}.global.ssl.fastly.net/osm/api/v2/sql</code>
+			<p>You can use an https service and there up to 4 endpoints setup for simultaneous requests.</p>
+		</div>
+		<!-- END REFERENCES -->
+		<hr>
+		<!-- ABOUT SECTION -->
+		<div>
+			<h3>About this service</h3>
+			<p>This API is provided by CartoDB to the developers community. It is free of use, but no warranty is provided. The API runs on top of CartoDB infrastructure to provide scalability and maintenance. It is free to use within its limitations and is provided without any warranty. All the software used to create it is Open Source.</p>
+			<p>The service makes use of <a href="http://imposm.org/">Imposm 3</a> for importing and refreshing the data and this work is been supported by Omniscale.</p>
+			<h3>Questions/issues</h3>
+			<p>If you find issues will be great if you report them on Github.</p>
+			<h3>Commercial Support</h3>
+			<p>We consider this an experimental API and we are looking to learn from the usage. We do not provide right now any SLA or commercial support for it, but if you are interested and want to talk about it drop us a note at <a href="mailto:support@cartodb.com">support@cartodb.com</a>.</p>
+		</div>
+		<!-- END ABOUT -->
+		<br>
+
+	</body>
+</html>
