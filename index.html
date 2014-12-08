@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+		<!-- call app script for request -->
+		<script src="js/app.js"></script>
+		<script>
+			function queryTest() {
+			    document.getElementById("demo").innerHTML = JSON.stringify(result);
+			}
+			</script>
+		</script>
+
 		<title>OSM-SQL API</title>
 		<link rel="shortcut icon" href="https://raw.githubusercontent.	com/auremoser/osm-sql/master/assets/favicon.ico" type="image/x-icon">
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
@@ -19,7 +29,7 @@
 				background-color: rgba(243, 156, 18,1.0);
 				padding: 10px;
 			}
-			#query {
+			#demo {
 				background-color: rgba(230, 126, 34,1.0);
 				padding: 10px;
 			}
@@ -226,18 +236,27 @@
 		<!-- END EXAMPLE -->
 		<hr>
 
-		<!-- QUERY GUI SECTION -->
-		<div id="query">
-			<h3>Test a Query!</h3>
-			<p>Try it out by pressing the Run button below! You can find more examples in the docs above too.</p>
-			<input type="button" value="Try it!" id="run-button" >
-			<!-- <button onclick=console.log("TESTING")>TEST!</button> -->
-			<br/>
-
-			<kbd><textarea rows="5" cols="60">ENTER YOUR SQL QUERY HERE.</textarea></kbd>
-			<samp><textarea rows="5" cols="60">SEE YOUR RESULT AS JSON HERE!</textarea></samp>
+		<!-- QUERY DEMO SECTION -->
+		<div id="demo">
+			<div>
+					<p>Type your SQL query. The current query is an example.</p>
+					<label for="query">Query</label>
+			    	<textarea id="query" cols="60" rows="10">SELECT ST_Centroid(the_geom) as the_geom,
+			tags->’name’ as name
+			FROM planet
+			WHERE tags@>'aeroway=>aerodrome'
+			AND the_geom &amp;&amp; ST_MakeEnvelope(-125.0, 24.9, -66.9, 49.5,4326)</textarea>
+				</div>
+				<br/>
+				<button id="submit">Submit</button>
+				<br/>
+				<br/>
+				<div>
+					<label for="result">Result</label>
+			    	<textarea id="result" cols="60" rows="20"></textarea>
+				</div>
 		</div>
-		<!-- END QUERY GUI -->
+		<!-- END QUERY DEMO -->
 		<!-- REFERENCES -->
 		<div id="refs">
 			<h3>Reference</h3>
@@ -267,19 +286,5 @@
 		</div>
 		<br>
 		<!-- END REFERENCES -->
-
-
-		<!-- include jquery  -->
-		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-		<!-- call app script for request -->
-		<script src="js/app.js"></script>
-		<script>
-		$(document).ready(function(){
-		    $('#run-button').click(function(){
-		       sanitizeQuery();
-		    });
-		  });
-		</script>
-
 	</body>
 </html>
