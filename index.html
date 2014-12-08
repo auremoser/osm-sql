@@ -21,33 +21,13 @@
 			  margin: 5px;
 			  padding: 5;
 			}
-			#intro {
-				background-color: rgba(241, 196, 15,1.0);
-				padding: 10px;
-			}
-			#examples {
-				background-color: rgba(243, 156, 18,1.0);
-				padding: 10px;
-			}
-			#demo {
-				background-color: rgba(230, 126, 34,1.0);
-				padding: 10px;
-			}
-			#refs {
-				background-color: rgba(211, 84, 0,1.0);
-				padding: 10px;
-			}
-			#about {
-				background-color: rgba(231, 76, 60,1.0);
-				padding: 10px;
-			}
 			.header {
 			  color: #252525;
 			  font-family: 'Helvetica-Neue', sans-serif;
 			  font-size: 24px;
 			  opacity: 0.4;
 			  padding-top: 2px;
-			  text-align: center;
+			  text-align: left;
 			  text-transform: uppercase;
 			}
 			blockquote {
@@ -58,13 +38,14 @@
 				font-family: 'Helvetica-Neue', sans-serif;
 				opacity: 0.8;
 			}
-			p, th, blockquote, ul, li {
+			p, th, blockquote, ul, li, label {
 				color: #252525;
 				font-family: 'Helvetica-Neue', sans-serif;
 				font-size: 14px;
 			}
 			button {
 				font-family: 'Helvetica-Neue', sans-serif;
+				font-size: 12px;
 				margin: 5px;
 			}
 			table, td{
@@ -77,7 +58,7 @@
 	</head>
 	<body>
 		<!-- INTRO SECTION: based on OSM-SQL API doc -->
-		<div id="intro">
+		<div>
 			<div class="header">Open Street Map SQL API</div>
 			<p>The OpenStreetMap SQL API (OSM SQL API) is a read-only API to the OpenStreetMap database. It is an alternative method for accessing the OpenStreetMaps database. The API is backed by PostgreSQL with PostGIS so you have access to a very powerful querying geospatial language. This is an experimental API so no warranty of quality of service is provided.</p>
 			<h4>Example call (GET or POST): Get all the airports in USA as a GeoJSON.</h4>
@@ -153,6 +134,7 @@
 			<p>which will cause a scan over the table and will probably not finish in time, you should use</p>
 			<code>WHERE tags@>’man_made=>surveillance’</code>
 
+			<!-- CREATING A QUERY -->
 			<h3>Creating a SQL query</h3>
 			<p>For example, selecting all buildings downtown Manhattan:</p>
 			<code>SELECT * FROM planet<strong> --get all attributes</strong></code><br>
@@ -182,6 +164,7 @@
 			}<br>
 		</code>
 
+		<!-- RESPONSE FORMATS -->
 		<h3>Response formats</h3>
 		<p>The SQL API provides multiple formats for download. You can specify the parameter “format” with the following values:</p>
 		<table>
@@ -211,6 +194,8 @@
 			</tr>
 		</table>
 		<p>There is support for JSONP if needed adding a callback parameter. Check out <a href url="http://docs.cartodb.com/cartodb-platform/sql-api.html#response-formats">the full SQL API for further documentation</a> </p>
+
+		<!-- ERRORS -->
 		<h3>Errors</h3>
 		<p>In case the SQL provided does not work, an error will be thrown.</p>
 		<p>One special case is if the query takes too long to be processed, it will fail because of timeout. We provide a finite amount of execution time for each query, if your query fails you should try to optimize it to use the previously mentioned indices, or contact us to see potential new indexes or improvements on the service.</p>
@@ -231,35 +216,29 @@
 		</div>
 		<!-- END INTRO -->
 		<hr>
-		<!-- EXAMPLE SECTION -->
-		<div id="examples"></div>
-		<!-- END EXAMPLE -->
-		<hr>
-
 		<!-- QUERY DEMO SECTION -->
-		<div id="demo">
+		<div>
+			<div class="header">DEMO</div>
 			<div>
 					<p>Type your SQL query. The current query is an example.</p>
-					<label for="query">Query</label>
-			    	<textarea id="query" cols="60" rows="10">SELECT ST_Centroid(the_geom) as the_geom,
-			tags->’name’ as name
-			FROM planet
-			WHERE tags@>'aeroway=>aerodrome'
-			AND the_geom &amp;&amp; ST_MakeEnvelope(-125.0, 24.9, -66.9, 49.5,4326)</textarea>
-				</div>
-				<br/>
-				<button id="submit">Submit</button>
-				<br/>
-				<br/>
-				<div>
-					<label for="result">Result</label>
-			    	<textarea id="result" cols="60" rows="20"></textarea>
-				</div>
+					<label for="query">Query</label><br>
+				  <textarea id="query" cols="60" rows="10">SELECT ST_Centroid(the_geom) as the_geom,
+				tags->’name’ as name
+				FROM planet
+				WHERE tags@>'aeroway=>aerodrome'
+				AND the_geom &amp;&amp; ST_MakeEnvelope(-125.0, 24.9, -66.9, 49.5,4326)</textarea>
+			</div>
+			<button id="submit">Submit</button><br>
+			<div>
+				<label for="result">Result</label><br>
+			    <textarea id="result" cols="60" rows="20"></textarea>
+			</div>
 		</div>
 		<!-- END QUERY DEMO -->
+		<hr>
 		<!-- REFERENCES -->
-		<div id="refs">
-			<h3>Reference</h3>
+		<div>
+			<div class="header">References</div>
 			<p>The service is built on PostgreSQL 9.3 if you want to check <a href url="http://www.postgresql.org/docs/9.3/static/sql-select.html">the reference</a>. Also check out <a href url="http://postgis.net/docs/reference.html">PostGIS reference for spatial functions</a>.</p>
 			<p>Finally the SQL API is explained in detail at <a href url="http://docs.cartodb.com/cartodb-platform/sql-api.html">the official documentation of CartoDB</a>.</p>
 			<h3>Licensing</h3>
@@ -275,7 +254,10 @@
 			<code>http{s}://cartocdn_{a,b,c,d}.global.ssl.fastly.net/osm/api/v2/sql</code>
 			<p>You can use an https service and there up to 4 endpoints setup for simultaneous requests.</p>
 		</div>
-		<div id="about">
+		<!-- END REFERENCES -->
+		<hr>
+		<!-- ABOUT SECTION -->
+		<div>
 			<h3>About this service</h3>
 			<p>This API is provided by CartoDB to the developers community. It is free of use, but no warranty is provided. The API runs on top of CartoDB infrastructure to provide scalability and maintenance. It is free to use within its limitations and is provided without any warranty. All the software used to create it is Open Source.</p>
 			<p>The service makes use of <a href="http://imposm.org/">Imposm 3</a> for importing and refreshing the data and this work is been supported by Omniscale.</p>
@@ -284,7 +266,8 @@
 			<h3>Commercial Support</h3>
 			<p>We consider this an experimental API and we are looking to learn from the usage. We do not provide right now any SLA or commercial support for it, but if you are interested and want to talk about it drop us a note at <a href="mailto:support@cartodb.com">support@cartodb.com</a>.</p>
 		</div>
+		<!-- END ABOUT -->
 		<br>
-		<!-- END REFERENCES -->
+
 	</body>
 </html>
