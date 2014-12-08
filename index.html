@@ -19,7 +19,7 @@
 			html, body {
 			  height: 100%;
 			  margin: 5px;
-			  padding: 5;
+			  padding: 5px;
 			}
 			.header {
 			  color: #252525;
@@ -197,22 +197,22 @@
 
 		<!-- ERRORS -->
 		<h3>Errors</h3>
-		<p>In case the SQL provided does not work, an error will be thrown.</p>
-		<p>One special case is if the query takes too long to be processed, it will fail because of timeout. We provide a finite amount of execution time for each query, if your query fails you should try to optimize it to use the previously mentioned indices, or contact us to see potential new indexes or improvements on the service.</p>
+			<p>In case the SQL provided does not work, an error will be thrown.</p>
+			<p>One special case is if the query takes too long to be processed, it will fail because of timeout. We provide a finite amount of execution time for 	each query, if your query fails you should try to optimize it to use the previously mentioned indices, or contact us to see potential new indexes or 	improvements on the service.</p>
 		<h3>Useful tips and SQL</h3>
-		<p>You can make use of all PostGIS functions, a few ideas here:</p>
-		<p><i>Get all speed cameras on a road:</i></p>
-		<code>SELECT * FROM planet WHERE tags->'highway'='speed_camera' AND the_geom &amp;&amp;</code>
-		<p><i>Get all surveillance cameras around the center of London</i></p>
-		<code>SELECT * FROM planet WHERE tags->'man_made'='surveillance' ORDER BY the_geom &lt;-> CDB_LatLng(51.507702,-0.127970)  limit 100</code>
-		<p><i>Get the tag attributes as part of the json</i></p>
-		<p>As you can see when you retrieve the tags, they come as a string all escaped. If you want them as part of the JSON response, or attributes on the GeoJSON, use the function</p>
-		<p><code>hstore_to_json</code></p>
+			<p>You can make use of all PostGIS functions, a few ideas here:</p>
+			<p><i>Get all speed cameras on a road:</i></p>
+			<code>SELECT * FROM planet WHERE tags->'highway'='speed_camera' AND the_geom &amp;&amp;</code>
+			<p><i>Get all surveillance cameras around the center of London</i></p>
+			<code>SELECT * FROM planet WHERE tags->'man_made'='surveillance' ORDER BY the_geom &lt;-> CDB_LatLng(51.507702,-0.127970)  limit 100</code>
+			<p><i>Get the tag attributes as part of the json</i></p>
+			<p>As you can see when you retrieve the tags, they come as a string all escaped. If you want them as part of the JSON response, or attributes on the 	GeoJSON, use the function</p>
+			<p><code>hstore_to_json</code></p>
 
-		<code>SELECT the_geom,hstore_to_json(tags) as tags FROM planet WHERE tags@>'man_made=>surveillance' ORDER BY the_geom &lt;-> CDB_LatLng(51.507702,-0.127970)  limit 100</code>
-		<p><i>Using the API as a tiler service</i></p>
-		<p>If you are developing an interactive map, you might want to access the data as tiles (x/y/z)</p>
-		<code>SELECT the_geom,hstore_to_json(tags) as tags FROM planet WHERE tags@>'man_made=>surveillance' AND the_geom &amp;&amp; CDB_XYZ_Extent(8186,5445,14)</code>
+			<code>SELECT the_geom,hstore_to_json(tags) as tags FROM planet WHERE tags@>'man_made=>surveillance' ORDER BY the_geom &lt;-> CDB_LatLng(51.507702,-0.	127970)  limit 100</code>
+			<p><i>Using the API as a tiler service</i></p>
+			<p>If you are developing an interactive map, you might want to access the data as tiles (x/y/z)</p>
+			<code>SELECT the_geom,hstore_to_json(tags) as tags FROM planet WHERE tags@>'man_made=>surveillance' AND the_geom &amp;&amp; CDB_XYZ_Extent(	8186,5445,14)</code>
 		</div>
 		<!-- END INTRO -->
 		<hr>
